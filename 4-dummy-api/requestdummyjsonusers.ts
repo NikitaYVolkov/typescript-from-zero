@@ -18,18 +18,9 @@ interface DummyUser {
     weight: number;
     eyeColor: Color;
     hair: Hair;
-    // domain: Host;
-    // ip: IpAddress;
-    // address: {
-    // 	address: string;
-    // 	city: string;
-    // 	coordinates: {
-    // 		lat: Latitude;
-    // 		lng: Longitude;
-    // 	};
-    // 	postalCode: string;
-    // 	state: 'DC' | 'TN';
-    // };
+    domain: string;
+    ip: string;
+    address: AddressOfResidence;
     // macAddress: MacAddress;
     // university: string;
     // bank: {
@@ -95,6 +86,19 @@ enum HairType {
     Curly = 'Curly',
     Kinky = 'Kinky',
     Coily = 'Coily'
+}
+
+interface AddressOfResidence {
+    address: string;
+    city: string;
+    coordinates: GeographicCoordinates;
+    postalCode: string;
+    state: string;
+}
+
+interface GeographicCoordinates {
+    lat: number;
+    lng: number;
 }
 
 function createUserFromImport(importedUser: object): DummyUser {
@@ -202,28 +206,46 @@ function createUserFromImport(importedUser: object): DummyUser {
     assertUserHairField(importedUser.hair, 'hair');
     user.hair = importedUser.hair;
 
+    if (!('domain' in importedUser)) {
+        throw new TypeError(`Imported user has no 'domain' field`);
+    }
+    assertUserDomainField(importedUser.domain, 'domain');
+    user.domain = importedUser.domain;
+
+    if (!('ip' in importedUser)) {
+        throw new TypeError(`Imported user has no 'ip' field`);
+    }
+    assertUserIpField(importedUser.ip, 'ip');
+    user.ip = importedUser.ip;
+
+    if (!('address' in importedUser)) {
+        throw new TypeError(`Imported user has no 'address' field`);
+    }
+    assertUserAddressOfResidenceField(importedUser.address, 'address');
+    user.address = importedUser.address;
+
     return user;
 }
 
 function assertUserNonNegativeNumberField(input: unknown, fieldName: string): asserts input is number {
-    if (typeof input != 'number') {
+    if (typeof input !== 'number') {
         throw new TypeError(`Imported user has invalid '${fieldName}' type: ${typeof input}. Must be 'number'.`);
     }
+
     if (input < 0) {
         throw new RangeError(`Imported user '${fieldName}' field is out of range: ${input}. Must be non-negative number.`);
     }
 }
 
 function assertUserStringField(input: unknown, fieldName: string): asserts input is string {
-    if (typeof input != 'string') {
+    if (typeof input !== 'string') {
         throw new TypeError(`Imported user has invalid '${fieldName}' type: ${typeof input}. Must be 'string'.`);
     }
 }
 
 function assertUserGenderField(input: unknown, fieldName: string): asserts input is Gender {
     assertUserStringField(input, fieldName);
-    if (!Object.values(Gender).includes(input as Gender)
-    ) {
+    if (!Object.values(Gender).includes(input as Gender)) {
         throw new TypeError(
             `Imported user has invalid '${fieldName}' field: ${input}. Must be in '${Object.values(Gender)}'.`
         );
@@ -232,20 +254,16 @@ function assertUserGenderField(input: unknown, fieldName: string): asserts input
 
 function assertUserEmailField(input: unknown, fieldName: string): asserts input is string {
     assertUserStringField(input, fieldName);
-    if (input.split('@').length != 2
-        || input.split('@')[0].length == 0
-        || input.split('@')[1].split('.').length < 2
-        || input.split('@')[1].split('..').length > 1
-        || input.split('@')[1].split('.')[0].length == 0
-        || input.split('@')[1].split('.')[input.split('@')[1].split('.').length - 1].length == 0
-    ) {
+    const isEmail = Boolean(input.match(/^\w+@(\w+\.)+\w+$/));
+    if (!isEmail) {
         throw new TypeError(`Imported user has invalid '${fieldName}' field: ${input}. Must be valid email address.`);
     }
 }
 
 function assertUserPhoneField(input: unknown, fieldName: string): asserts input is string {
     assertUserStringField(input, fieldName);
-    if (!input.match(/^(\+)?[ \d]+$/)) {
+    const isPhoneNumberWithSpaces = Boolean(input.match(/^(\+)?[ \d]+$/));
+    if (!isPhoneNumberWithSpaces) {
         throw new TypeError(`Imported user has invalid '${fieldName}' field: ${input}. Must be valid phone number.`);
     }
 }
@@ -259,8 +277,7 @@ function assertUserDateField(input: unknown, fieldName: string): asserts input i
 
 function assertUserBloodGroupField(input: unknown, fieldName: string): asserts input is BloodGroup {
     assertUserStringField(input, fieldName);
-    if (!Object.values(BloodGroup).includes(input as BloodGroup)
-    ) {
+    if (!Object.values(BloodGroup).includes(input as BloodGroup)) {
         throw new TypeError(
             `Imported user has invalid '${fieldName}' field: ${input}. Must be in '${Object.values(BloodGroup)}'.`
         );
@@ -269,8 +286,7 @@ function assertUserBloodGroupField(input: unknown, fieldName: string): asserts i
 
 function assertUserColorField(input: unknown, fieldName: string): asserts input is Color {
     assertUserStringField(input, fieldName);
-    if (!Object.values(Color).includes(input as Color)
-    ) {
+    if (!Object.values(Color).includes(input as Color)) {
         throw new TypeError(
             `Imported user has invalid '${fieldName}' field: ${input}. Must be in '${Object.values(Color)}'.`
         );
@@ -278,18 +294,23 @@ function assertUserColorField(input: unknown, fieldName: string): asserts input 
 }
 
 function assertUserHairField(input: unknown, fieldName: string): asserts input is Hair {
-    const invalidHairField = new TypeError(`Imported user has invalid '${fieldName}' field: ${JSON.stringify(input)}. Must be valid Hair type.`);
-    if (typeof input != 'object'
+    const invalidHairField = new TypeError(
+        `Imported user has invalid '${fieldName}' field: ${JSON.stringify(input)}. Must be valid Hair type.`
+    );
+
+    if (typeof input !== 'object'
         || input === null
         || !('color' in input)
         || !('type' in input)
     ) {
         throw invalidHairField;
     }
+
     try { assertUserColorField(input.color, 'color') }
     catch (e) {
         throw invalidHairField;
     }
+
     try { assertUserHairTypeField(input.type, 'type') }
     catch (e) {
         throw invalidHairField;
@@ -298,10 +319,118 @@ function assertUserHairField(input: unknown, fieldName: string): asserts input i
 
 function assertUserHairTypeField(input: unknown, fieldName: string): asserts input is HairType {
     assertUserStringField(input, fieldName);
-    if (!Object.values(HairType).includes(input as HairType)
-    ) {
+    if (!Object.values(HairType).includes(input as HairType)) {
         throw new TypeError(
             `Imported user has invalid '${fieldName}' field: ${input}. Must be in '${Object.values(HairType)}'.`
+        );
+    }
+}
+
+function assertUserDomainField(input: unknown, fieldName: string): asserts input is string {
+    assertUserStringField(input, fieldName);
+    const isDomain = Boolean(input.match(/^(\w+\.)+\w+$/));
+    if (!isDomain) {
+        throw new TypeError(`Imported user has invalid '${fieldName}' field: ${input}. Must be valid web domain.`);
+    }
+}
+
+function assertUserIpField(input: unknown, fieldName: string): asserts input is string {
+    assertUserStringField(input, fieldName);
+    const invalidIpField = new TypeError(
+        `Imported user has invalid '${fieldName}' field: ${input}. Must be valid web domain.`
+    );
+
+    const isFourNumbersDividedByDots = Boolean(input.match(/^(\d+\.){3}\d+$/));
+    if (!isFourNumbersDividedByDots) {
+        throw invalidIpField;
+    }
+
+    const ipNumericParts: number[] = input.split('.').map((p) => Number(p));
+    const isValidParts: boolean = ipNumericParts.reduce<boolean>(
+        (isValidParts: boolean, part: number) => { return isValidParts && (part < 256) },
+        true
+    );
+    if (!isValidParts) {
+        throw invalidIpField;
+    }
+}
+
+function assertUserAddressOfResidenceField(input: unknown, fieldName: string): asserts input is AddressOfResidence {
+    const invalidAddressOfResidenceField = new TypeError(
+        `Imported user has invalid '${fieldName}' field: ${JSON.stringify(input)}. Must be valid AddressOfResidence type.`
+    );
+
+    if (typeof input !== 'object'
+        || input === null
+        || !('address' in input)
+        || !('city' in input)
+        || !('coordinates' in input)
+        || !('postalCode' in input)
+        || !('state' in input)
+    ) {
+        throw invalidAddressOfResidenceField;
+    }
+
+    try { assertUserStringField(input.address, 'address') }
+    catch (e) {
+        throw invalidAddressOfResidenceField;
+    }
+
+    try { assertUserStringField(input.city, 'city') }
+    catch (e) {
+        throw invalidAddressOfResidenceField;
+    }
+
+    try { assertUserGeographicCoordinatesField(input.coordinates, 'coordinates') }
+    catch (e) {
+        throw invalidAddressOfResidenceField;
+    }
+
+    try { assertUserStringField(input.postalCode, 'postalCode') }
+    catch (e) {
+        throw invalidAddressOfResidenceField;
+    }
+
+    try { assertUserStringField(input.state, 'state') }
+    catch (e) {
+        throw invalidAddressOfResidenceField;
+    }
+}
+
+function assertUserGeographicCoordinatesField(input: unknown, fieldName: string): asserts input is GeographicCoordinates {
+    const invalidGeographicCoordinatesField = new TypeError(
+        `Imported user has invalid '${fieldName}' field: ${JSON.stringify(input)}. Must be valid GeographicCoordinates type.`
+    )
+
+    if (typeof input !== 'object'
+        || input === null
+        || !('lat' in input)
+        || !('lng' in input)
+    ) {
+        throw invalidGeographicCoordinatesField;
+    }
+
+    try { assertUserNumberRangeField(input.lat, 'lat', [-90, 90]) }
+    catch (e) {
+        throw invalidGeographicCoordinatesField;
+    }
+
+    try { assertUserNumberRangeField(input.lng, 'lng', [-180, 180]) }
+    catch (e) {
+        throw invalidGeographicCoordinatesField;
+    }
+}
+
+function assertUserNumberRangeField(input: unknown, fieldName: string, range: [number, number]): asserts input is number {
+    if (typeof input !== 'number') {
+        throw new TypeError(`Imported user has invalid '${fieldName}' type: ${typeof input}. Must be 'number'.`);
+    }
+
+    const rangeMin: number = range[0];
+    const rangeMax: number = range[1];
+    if (input < rangeMin || input > rangeMax) {
+        throw new RangeError(
+            `Imported user '${fieldName}' field is out of range: ${input}. Must be inclusively between ${rangeMin} and ${rangeMax}.`
         );
     }
 }
