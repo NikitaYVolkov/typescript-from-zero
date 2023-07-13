@@ -1,4 +1,22 @@
 import dummyusers from './dummyusers.json';
+import type { AddressOfResidence, BankAccount, BloodGroup, Color, Gender, Hair } from './userfieldtypes';
+import {
+    assertUserAddressOfResidenceField,
+    assertUserBankAccountField,
+    assertUserBloodGroupField,
+    assertUserColorField,
+    assertUserDateField,
+    assertUserDomainField,
+    assertUserEmailField,
+    assertUserGenderField,
+    assertUserHairField,
+    assertUserIpAddressField,
+    assertUserMacAddressField,
+    assertUserNonNegativeNumberField,
+    assertUserPhoneField,
+    assertUserStringField
+} from './assertuserfields';
+import { cardExpireToDate } from './utilities';
 
 interface DummyUser {
     id: number;
@@ -21,15 +39,9 @@ interface DummyUser {
     domain: string;
     ip: string;
     address: AddressOfResidence;
-    // macAddress: MacAddress;
-    // university: string;
-    // bank: {
-    // 	cardExpire: MonthAndYear;
-    // 	cardNumber: CardNumber;
-    // 	cardType: 'maestro';
-    // 	currency: 'Peso';
-    // 	iban: string;
-    // };
+    macAddress: string;
+    university: string;
+    bank: BankAccount;
     // company: {
     // 	address: {
     // 		address: string;
@@ -48,57 +60,6 @@ interface DummyUser {
     // ein: EinNumber;
     // ssn: SsnNumber;
     // userAgent: string;
-}
-
-enum Gender {
-    Male = 'male',
-    Female = 'female'
-}
-
-enum BloodGroup {
-    O_MINUS = 'O−',
-    A_MINUS = 'A−',
-    B_MINUS = 'B−',
-    AB_MINUS = 'AB−'
-}
-
-enum Color {
-    White = 'White',
-    Red = 'Red',
-    Orange = 'Orange',
-    Yellow = 'Yellow',
-    Green = 'Green',
-    Cyan = 'Cyan',
-    Blue = 'Blue',
-    Violet = 'Violet',
-    Black = 'Black'
-}
-
-interface Hair {
-    color: Color;
-    type: HairType;
-}
-
-enum HairType {
-    Strands = 'Strands',
-    Straight = 'Straight',
-    Wavy = 'Wavy',
-    Curly = 'Curly',
-    Kinky = 'Kinky',
-    Coily = 'Coily'
-}
-
-interface AddressOfResidence {
-    address: string;
-    city: string;
-    coordinates: GeographicCoordinates;
-    postalCode: string;
-    state: string;
-}
-
-interface GeographicCoordinates {
-    lat: number;
-    lng: number;
 }
 
 function createUserFromImport(importedUser: object): DummyUser {
@@ -215,7 +176,7 @@ function createUserFromImport(importedUser: object): DummyUser {
     if (!('ip' in importedUser)) {
         throw new TypeError(`Imported user has no 'ip' field`);
     }
-    assertUserIpField(importedUser.ip, 'ip');
+    assertUserIpAddressField(importedUser.ip, 'ip');
     user.ip = importedUser.ip;
 
     if (!('address' in importedUser)) {
@@ -224,215 +185,31 @@ function createUserFromImport(importedUser: object): DummyUser {
     assertUserAddressOfResidenceField(importedUser.address, 'address');
     user.address = importedUser.address;
 
+    if (!('macAddress' in importedUser)) {
+        throw new TypeError(`Imported user has no 'macAddress' field`);
+    }
+    assertUserMacAddressField(importedUser.macAddress, 'macAddress');
+    user.macAddress = importedUser.macAddress;
+
+    if (!('university' in importedUser)) {
+        throw new TypeError(`Imported user has no 'university' field`);
+    }
+    assertUserStringField(importedUser.university, 'university');
+    user.university = importedUser.university;
+
+    if (!('bank' in importedUser)) {
+        throw new TypeError(`Imported user has no 'bank' field`);
+    }
+    assertUserBankAccountField(importedUser.bank, 'bank');
+    user.bank = {
+        cardExpire: cardExpireToDate(importedUser.bank.cardExpire),
+        cardNumber: importedUser.bank.cardNumber,
+        cardType: importedUser.bank.cardType,
+        currency: importedUser.bank.currency,
+        iban: importedUser.bank.iban
+    }
+
     return user;
-}
-
-function assertUserNonNegativeNumberField(input: unknown, fieldName: string): asserts input is number {
-    if (typeof input !== 'number') {
-        throw new TypeError(`Imported user has invalid '${fieldName}' type: ${typeof input}. Must be 'number'.`);
-    }
-
-    if (input < 0) {
-        throw new RangeError(`Imported user '${fieldName}' field is out of range: ${input}. Must be non-negative number.`);
-    }
-}
-
-function assertUserStringField(input: unknown, fieldName: string): asserts input is string {
-    if (typeof input !== 'string') {
-        throw new TypeError(`Imported user has invalid '${fieldName}' type: ${typeof input}. Must be 'string'.`);
-    }
-}
-
-function assertUserGenderField(input: unknown, fieldName: string): asserts input is Gender {
-    assertUserStringField(input, fieldName);
-    if (!Object.values(Gender).includes(input as Gender)) {
-        throw new TypeError(
-            `Imported user has invalid '${fieldName}' field: ${input}. Must be in '${Object.values(Gender)}'.`
-        );
-    }
-}
-
-function assertUserEmailField(input: unknown, fieldName: string): asserts input is string {
-    assertUserStringField(input, fieldName);
-    const isEmail = Boolean(input.match(/^\w+@(\w+\.)+\w+$/));
-    if (!isEmail) {
-        throw new TypeError(`Imported user has invalid '${fieldName}' field: ${input}. Must be valid email address.`);
-    }
-}
-
-function assertUserPhoneField(input: unknown, fieldName: string): asserts input is string {
-    assertUserStringField(input, fieldName);
-    const isPhoneNumberWithSpaces = Boolean(input.match(/^(\+)?[ \d]+$/));
-    if (!isPhoneNumberWithSpaces) {
-        throw new TypeError(`Imported user has invalid '${fieldName}' field: ${input}. Must be valid phone number.`);
-    }
-}
-
-function assertUserDateField(input: unknown, fieldName: string): asserts input is string {
-    assertUserStringField(input, fieldName);
-    if (isNaN(Date.parse(input))) {
-        throw new TypeError(`Imported user has invalid '${fieldName}' field: ${input}. Must be valid date.`);
-    }
-}
-
-function assertUserBloodGroupField(input: unknown, fieldName: string): asserts input is BloodGroup {
-    assertUserStringField(input, fieldName);
-    if (!Object.values(BloodGroup).includes(input as BloodGroup)) {
-        throw new TypeError(
-            `Imported user has invalid '${fieldName}' field: ${input}. Must be in '${Object.values(BloodGroup)}'.`
-        );
-    }
-}
-
-function assertUserColorField(input: unknown, fieldName: string): asserts input is Color {
-    assertUserStringField(input, fieldName);
-    if (!Object.values(Color).includes(input as Color)) {
-        throw new TypeError(
-            `Imported user has invalid '${fieldName}' field: ${input}. Must be in '${Object.values(Color)}'.`
-        );
-    }
-}
-
-function assertUserHairField(input: unknown, fieldName: string): asserts input is Hair {
-    const invalidHairField = new TypeError(
-        `Imported user has invalid '${fieldName}' field: ${JSON.stringify(input)}. Must be valid Hair type.`
-    );
-
-    if (typeof input !== 'object'
-        || input === null
-        || !('color' in input)
-        || !('type' in input)
-    ) {
-        throw invalidHairField;
-    }
-
-    try { assertUserColorField(input.color, 'color') }
-    catch (e) {
-        throw invalidHairField;
-    }
-
-    try { assertUserHairTypeField(input.type, 'type') }
-    catch (e) {
-        throw invalidHairField;
-    }
-}
-
-function assertUserHairTypeField(input: unknown, fieldName: string): asserts input is HairType {
-    assertUserStringField(input, fieldName);
-    if (!Object.values(HairType).includes(input as HairType)) {
-        throw new TypeError(
-            `Imported user has invalid '${fieldName}' field: ${input}. Must be in '${Object.values(HairType)}'.`
-        );
-    }
-}
-
-function assertUserDomainField(input: unknown, fieldName: string): asserts input is string {
-    assertUserStringField(input, fieldName);
-    const isDomain = Boolean(input.match(/^(\w+\.)+\w+$/));
-    if (!isDomain) {
-        throw new TypeError(`Imported user has invalid '${fieldName}' field: ${input}. Must be valid web domain.`);
-    }
-}
-
-function assertUserIpField(input: unknown, fieldName: string): asserts input is string {
-    assertUserStringField(input, fieldName);
-    const invalidIpField = new TypeError(
-        `Imported user has invalid '${fieldName}' field: ${input}. Must be valid web domain.`
-    );
-
-    const isFourNumbersDividedByDots = Boolean(input.match(/^(\d+\.){3}\d+$/));
-    if (!isFourNumbersDividedByDots) {
-        throw invalidIpField;
-    }
-
-    const ipNumericParts: number[] = input.split('.').map((p) => Number(p));
-    const isValidParts: boolean = ipNumericParts.reduce<boolean>(
-        (isValidParts: boolean, part: number) => { return isValidParts && (part < 256) },
-        true
-    );
-    if (!isValidParts) {
-        throw invalidIpField;
-    }
-}
-
-function assertUserAddressOfResidenceField(input: unknown, fieldName: string): asserts input is AddressOfResidence {
-    const invalidAddressOfResidenceField = new TypeError(
-        `Imported user has invalid '${fieldName}' field: ${JSON.stringify(input)}. Must be valid AddressOfResidence type.`
-    );
-
-    if (typeof input !== 'object'
-        || input === null
-        || !('address' in input)
-        || !('city' in input)
-        || !('coordinates' in input)
-        || !('postalCode' in input)
-        || !('state' in input)
-    ) {
-        throw invalidAddressOfResidenceField;
-    }
-
-    try { assertUserStringField(input.address, 'address') }
-    catch (e) {
-        throw invalidAddressOfResidenceField;
-    }
-
-    try { assertUserStringField(input.city, 'city') }
-    catch (e) {
-        throw invalidAddressOfResidenceField;
-    }
-
-    try { assertUserGeographicCoordinatesField(input.coordinates, 'coordinates') }
-    catch (e) {
-        throw invalidAddressOfResidenceField;
-    }
-
-    try { assertUserStringField(input.postalCode, 'postalCode') }
-    catch (e) {
-        throw invalidAddressOfResidenceField;
-    }
-
-    try { assertUserStringField(input.state, 'state') }
-    catch (e) {
-        throw invalidAddressOfResidenceField;
-    }
-}
-
-function assertUserGeographicCoordinatesField(input: unknown, fieldName: string): asserts input is GeographicCoordinates {
-    const invalidGeographicCoordinatesField = new TypeError(
-        `Imported user has invalid '${fieldName}' field: ${JSON.stringify(input)}. Must be valid GeographicCoordinates type.`
-    )
-
-    if (typeof input !== 'object'
-        || input === null
-        || !('lat' in input)
-        || !('lng' in input)
-    ) {
-        throw invalidGeographicCoordinatesField;
-    }
-
-    try { assertUserNumberRangeField(input.lat, 'lat', [-90, 90]) }
-    catch (e) {
-        throw invalidGeographicCoordinatesField;
-    }
-
-    try { assertUserNumberRangeField(input.lng, 'lng', [-180, 180]) }
-    catch (e) {
-        throw invalidGeographicCoordinatesField;
-    }
-}
-
-function assertUserNumberRangeField(input: unknown, fieldName: string, range: [number, number]): asserts input is number {
-    if (typeof input !== 'number') {
-        throw new TypeError(`Imported user has invalid '${fieldName}' type: ${typeof input}. Must be 'number'.`);
-    }
-
-    const rangeMin: number = range[0];
-    const rangeMax: number = range[1];
-    if (input < rangeMin || input > rangeMax) {
-        throw new RangeError(
-            `Imported user '${fieldName}' field is out of range: ${input}. Must be inclusively between ${rangeMin} and ${rangeMax}.`
-        );
-    }
 }
 
 const user0 = createUserFromImport(dummyusers.users[0]);
