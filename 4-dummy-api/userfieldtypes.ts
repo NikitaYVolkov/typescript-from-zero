@@ -73,3 +73,10 @@ export enum BankCardType {
 	Mir = 'mir',
 	AmericanExpress = 'americanexpress'
 }
+
+export interface Company {
+	address: AddressOfResidence,
+	department: string;
+	name: string;
+	title: string;
+}

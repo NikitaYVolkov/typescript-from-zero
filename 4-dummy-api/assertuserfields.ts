@@ -1,4 +1,4 @@
-import type { AddressOfResidence, BankAccountInput, GeographicCoordinates, Hair } from './userfieldtypes';
+import type { AddressOfResidence, BankAccountInput, Company, GeographicCoordinates, Hair } from './userfieldtypes';
 import { BankCardType, BloodGroup, Color, Gender, HairType } from './userfieldtypes';
 import {
 	convertHexadecimalStringToDecimalNumber,
@@ -324,5 +324,41 @@ export function assertUserBankIbanNumberField(input: unknown, fieldName: string)
 	const isWithinMaxLength = (inputWithoutSpaces.length <= maxIbanCharacters);
 	if (!isIbanSymbols || !isWithinMaxLength) {
 		throw new TypeError(`Imported user has invalid '${fieldName}' field: ${input}. Must be valid IBAN.`);
+	}
+}
+
+export function assertUserCompanyField(input: unknown, fieldName: string): asserts input is Company {
+	const baseErrorMessage = `Imported user has invalid '${fieldName}' field: ${JSON.stringify(input)}. Must be valid Company type.`;
+	const invalidBaseField = invalidBaseFieldError(baseErrorMessage);
+	const invalidSubField = invalidSubFieldError(baseErrorMessage);
+
+	if (typeof input !== 'object'
+		|| input === null
+		|| !('address' in input)
+		|| !('department' in input)
+		|| !('name' in input)
+		|| !('title' in input)
+	) {
+		throw invalidBaseField;
+	}
+
+	try { assertUserAddressOfResidenceField(input.address, 'address') }
+	catch (e) {
+		throw invalidSubField(e as Error);
+	}
+
+	try { assertUserStringField(input.department, 'department') }
+	catch (e) {
+		throw invalidSubField(e as Error);
+	}
+
+	try { assertUserStringField(input.name, 'name') }
+	catch (e) {
+		throw invalidSubField(e as Error);
+	}
+
+	try { assertUserStringField(input.title, 'title') }
+	catch (e) {
+		throw invalidSubField(e as Error);
 	}
 }

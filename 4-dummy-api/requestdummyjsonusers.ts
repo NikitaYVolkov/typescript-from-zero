@@ -1,10 +1,11 @@
 import dummyusers from './dummyusers.json';
-import type { AddressOfResidence, BankAccount, BloodGroup, Color, Gender, Hair } from './userfieldtypes';
+import type { AddressOfResidence, BankAccount, BloodGroup, Color, Company, Gender, Hair } from './userfieldtypes';
 import {
     assertUserAddressOfResidenceField,
     assertUserBankAccountField,
     assertUserBloodGroupField,
     assertUserColorField,
+    assertUserCompanyField,
     assertUserDateField,
     assertUserDomainField,
     assertUserEmailField,
@@ -42,21 +43,7 @@ interface DummyUser {
     macAddress: string;
     university: string;
     bank: BankAccount;
-    // company: {
-    // 	address: {
-    // 		address: string;
-    // 		city: string;
-    // 		coordinates: {
-    // 			lat: Latitude;
-    // 			lng: Longitude;
-    // 		};
-    // 		postalCode: string;
-    // 		state: 'DC' | 'TN';
-    // 	};
-    // 	department: 'Marketing';
-    // 	name: string;
-    // 	title: string;
-    // }
+    company: Company;
     // ein: EinNumber;
     // ssn: SsnNumber;
     // userAgent: string;
@@ -208,6 +195,12 @@ function createUserFromImport(importedUser: object): DummyUser {
         currency: importedUser.bank.currency,
         iban: importedUser.bank.iban
     }
+
+    if (!('company' in importedUser)) {
+        throw new TypeError(`Imported user has no 'company' field`);
+    }
+    assertUserCompanyField(importedUser.company, 'company');
+    user.company = importedUser.company;
 
     return user;
 }
