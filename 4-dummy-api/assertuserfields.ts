@@ -34,7 +34,7 @@ export function assertUserGenderField(input: unknown, fieldName: string): assert
 
 export function assertUserEmailField(input: unknown, fieldName: string): asserts input is string {
 	assertUserStringField(input, fieldName);
-	const isEmail = Boolean(input.match(/^\w+@(\w+\.)+\w+$/));
+	const isEmail = Boolean(input.match(/^\w+@([\w-]+\.)+\w+$/));
 	if (!isEmail) {
 		throw new TypeError(`Imported user has invalid '${fieldName}' field: ${input}. Must be valid email address.`);
 	}
@@ -108,7 +108,7 @@ export function assertUserHairTypeField(input: unknown, fieldName: string): asse
 
 export function assertUserDomainField(input: unknown, fieldName: string): asserts input is string {
 	assertUserStringField(input, fieldName);
-	const isDomain = Boolean(input.match(/^(\w+\.)+\w+$/));
+	const isDomain = Boolean(input.match(/^([\w-]+\.)+\w+$/));
 	if (!isDomain) {
 		throw new TypeError(`Imported user has invalid '${fieldName}' field: ${input}. Must be valid web domain.`);
 	}
@@ -301,9 +301,9 @@ export function assertUserBankCardExpireField(input: unknown, fieldName: string)
 
 export function assertUserBankCardNumberField(input: unknown, fieldName: string): asserts input is string {
 	assertUserStringField(input, fieldName);
-	const isSeventeenDigits = Boolean(input.match(/^\d{17}$/));
+	const isSeventeenDigits = Boolean(input.match(/^\d{16}$/));
 	if (!isSeventeenDigits) {
-		throw new TypeError(`Imported user has invalid '${fieldName}' field: ${input}. Must be valid bank card number.`);
+		throw new TypeError(`Imported user has invalid '${fieldName}' field: ${input}. Must be valid bank card number with 16 digits.`);
 	}
 }
 
@@ -360,5 +360,14 @@ export function assertUserCompanyField(input: unknown, fieldName: string): asser
 	try { assertUserStringField(input.title, 'title') }
 	catch (e) {
 		throw invalidSubField(e as Error);
+	}
+}
+
+export function assertUserNineHyphenatedDigitsField(input: unknown, fieldName: string): asserts input is string {
+	assertUserStringField(input, fieldName);
+	const isHyphenatedNumber = Boolean(input.match(/^\d[\d-]*\d$/));
+	const isNineSymbolsWithoutHyphens = replaceAll(input, '-', '').length === 9;
+	if (!isHyphenatedNumber || !isNineSymbolsWithoutHyphens) {
+		throw new TypeError(`Imported user has invalid '${fieldName}' field: ${input}. Must contain nine digits optionally separated by hyphens.`);
 	}
 }

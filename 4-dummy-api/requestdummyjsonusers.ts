@@ -1,4 +1,5 @@
 import dummyusers from './dummyusers.json';
+import dummyusersWithFixedValidation from './dummyuserswithfixedvalidation.json';
 import type { AddressOfResidence, BankAccount, BloodGroup, Color, Company, Gender, Hair } from './userfieldtypes';
 import {
     assertUserAddressOfResidenceField,
@@ -13,6 +14,7 @@ import {
     assertUserHairField,
     assertUserIpAddressField,
     assertUserMacAddressField,
+    assertUserNineHyphenatedDigitsField,
     assertUserNonNegativeNumberField,
     assertUserPhoneField,
     assertUserStringField
@@ -44,9 +46,9 @@ interface DummyUser {
     university: string;
     bank: BankAccount;
     company: Company;
-    // ein: EinNumber;
-    // ssn: SsnNumber;
-    // userAgent: string;
+    ein: string;
+    ssn: string;
+    userAgent: string;
 }
 
 function createUserFromImport(importedUser: object): DummyUser {
@@ -202,8 +204,40 @@ function createUserFromImport(importedUser: object): DummyUser {
     assertUserCompanyField(importedUser.company, 'company');
     user.company = importedUser.company;
 
+    if (!('ein' in importedUser)) {
+        throw new TypeError(`Imported user has no 'ein' field`);
+    }
+    assertUserNineHyphenatedDigitsField(importedUser.ein, 'ein');
+    user.ein = importedUser.ein;
+
+    if (!('ssn' in importedUser)) {
+        throw new TypeError(`Imported user has no 'ssn' field`);
+    }
+    assertUserNineHyphenatedDigitsField(importedUser.ssn, 'ssn');
+    user.ssn = importedUser.ssn;
+
+    if (!('userAgent' in importedUser)) {
+        throw new TypeError(`Imported user has no 'userAgent' field`);
+    }
+    assertUserStringField(importedUser.userAgent, 'userAgent');
+    user.userAgent = importedUser.userAgent;
+
     return user;
 }
 
-const user0 = createUserFromImport(dummyusers.users[0]);
-console.log(user0);
+const allUsersWithNoValidationErrors: DummyUser[] = getImportedUsers(dummyusersWithFixedValidation.users);
+console.log(allUsersWithNoValidationErrors);
+
+const allUsers: DummyUser[] = getImportedUsers(dummyusers.users);
+console.log(allUsers);
+
+function getImportedUsers(importedUsers: any[]): DummyUser[] {
+    return importedUsers.reduce<DummyUser[]>(
+        (users: DummyUser[], importedUser: object) => {
+            const user: DummyUser = createUserFromImport(importedUser);
+            users.push(user);
+            return users;
+        },
+        []
+    );
+}

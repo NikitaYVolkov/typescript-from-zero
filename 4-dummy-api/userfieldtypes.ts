@@ -5,9 +5,13 @@ export enum Gender {
 }
 
 export enum BloodGroup {
+	O_PLUS = 'O+',
 	O_MINUS = 'O−',
+	A_PLUS = 'A+',
 	A_MINUS = 'A−',
+	B_PLUS = 'B+',
 	B_MINUS = 'B−',
+	AB_PLUS = 'AB+',
 	AB_MINUS = 'AB−'
 }
 
@@ -20,7 +24,13 @@ export enum Color {
 	Cyan = 'Cyan',
 	Blue = 'Blue',
 	Violet = 'Violet',
-	Black = 'Black'
+	Black = 'Black',
+	Brown = 'Brown',
+	Blond = 'Blond',
+	Gray = 'Gray',
+	Amber = 'Amber',
+	Chestnut = 'Chestnut',
+	Auburn = 'Auburn'
 }
 
 export interface Hair {
@@ -34,7 +44,8 @@ export enum HairType {
 	Wavy = 'Wavy',
 	Curly = 'Curly',
 	Kinky = 'Kinky',
-	Coily = 'Coily'
+	Coily = 'Coily',
+	Very_curly = 'Very curly'
 }
 
 export interface AddressOfResidence {
@@ -71,7 +82,15 @@ export enum BankCardType {
 	Maestro = 'maestro',
 	Mastercard = 'mastercard',
 	Mir = 'mir',
-	AmericanExpress = 'americanexpress'
+	AmericanExpress = 'americanexpress',
+	Jcb = 'jcb',
+	Visa_electron = 'visa-electron',
+	Instapayment = 'instapayment',
+	Bankcard = 'bankcard',
+	Diners_club_carte_blanche = 'diners-club-carte-blanche',
+	Diners_club_enroute = 'diners-club-enroute',
+	Solo = 'solo',
+	Switch = 'switch'
 }
 
 export interface Company {
