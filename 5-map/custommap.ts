@@ -62,6 +62,14 @@ export class CustomMap<U extends string | number, V> {
 		}
 	}
 
+	getAllKeys(): U[] {
+		return this.keys.getAllValues();
+	}
+
+	getAllValues(): V[] {
+		return this.values.getAllValues();
+	}
+
 	private findMapIndexByKey(findKey: U): number | undefined {
 		if (this.isEmpty()) return undefined;
 		let mapIndex: number | undefined = undefined;

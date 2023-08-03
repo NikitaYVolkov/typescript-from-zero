@@ -36,10 +36,11 @@ export class LinkedList<T> {
 		return removed.val;
 	}
 
-	update(val: T, index: number): T | undefined {
+	update(val: T, index: number): this | null {
 		const current = this.findNode(index);
-		if (current) current.val = val;
-		return current?.val;
+		if (!current) return null;
+		current.val = val;
+		return this;
 	}
 
 	isEmpty(): boolean {
@@ -67,6 +68,22 @@ export class LinkedList<T> {
 		if (!this.isSingleNode()) this.tail!.next = null;
 		this.length--;
 		return removed.val;
+	}
+
+	print(): void {
+		console.log(`LinkedList size: ${this.length}.`);
+		for (let i = 0; i < this.length; i++) {
+			const value = this.find(i)!;
+			console.log(`Index: ${i}. Value: ${JSON.stringify(value)}`);
+		}
+	}
+
+	getAllValues(): T[] {
+		const values: T[] = [];
+		for (let i = 0; i < this.length; i++) {
+			values.push(this.find(i)!);
+		}
+		return values;
 	}
 
 	protected addHead(val: T): this {
