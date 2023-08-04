@@ -1,7 +1,11 @@
 export class LinkedList<T> {
 	protected head: LinkedListNode<T> | null = null;
 	protected tail: LinkedListNode<T> | null = null;
-	length = 0;
+	protected length = 0;
+
+	size(): number {
+		return this.length;
+	}
 
 	find(index: number): T | undefined {
 		const current = this.findNode(index);

@@ -8,7 +8,7 @@ class HashMap<T> {
 		const hashes = this.buckets.getAllKeys();
 		let countSize = 0;
 		hashes.forEach((i) => {
-			countSize += this.buckets.get(i)!.length;
+			countSize += this.buckets.get(i)!.size();
 		});
 		return countSize;
 	}
@@ -23,7 +23,10 @@ class HashMap<T> {
 	delete(key: string): this {
 		const deletingElement = new PotentialElementWithoutValue(this.buckets, key);
 		const newBucketList = deletingElement.getBucketListWithDeletedElement();
-		if (newBucketList !== undefined) {
+		if (newBucketList === undefined) return this;
+		if (newBucketList.isEmpty()) {
+			this.buckets.delete(deletingElement.hash);
+		} else {
 			this.buckets.set(deletingElement.hash, newBucketList);
 		}
 		return this;
@@ -41,19 +44,12 @@ class HashMap<T> {
 	}
 
 	clear(): this {
-		const hashes = this.buckets.getAllKeys();
-		hashes.forEach((i) => {
-			const bucket = this.buckets.get(i)!;
-			const bucketSizeBeforeClear = bucket.length;
-			for (let j = 0; j < bucketSizeBeforeClear; j++) {
-				bucket.removeTail();
-			}
-		});
+		this.buckets.clear();
 		return this;
 	}
 
 	isEmpty(): boolean {
-		return this.size() === 0;
+		return this.buckets.isEmpty();
 	}
 
 	print(): void {
@@ -61,7 +57,7 @@ class HashMap<T> {
 		const hashes = this.buckets.getAllKeys();
 		hashes.forEach((i) => {
 			const bucket = this.buckets.get(i)!;
-			for (let j = 0; j < bucket.length; j++) {
+			for (let j = 0; j < bucket.size(); j++) {
 				const el = bucket.find(j)!;
 				console.log(`Key: ${el.key}. Value: ${JSON.stringify(el.value)}`);
 			}
@@ -131,24 +127,24 @@ abstract class PotentialElement<T> {
 		return this.bucketList;
 	}
 
-	private newBucketElementDefined(el: BucketElement<T> | undefined): asserts el is BucketElement<T> {
+	protected newBucketElementDefined(el: BucketElement<T> | undefined): asserts el is BucketElement<T> {
 		if (!this.value) throw new Error('Implementation error. New bucket element is expected to be defined.');
 	}
 
-	private existingBucketElementDefined(el: BucketElement<T> | undefined): asserts el is BucketElement<T> {
+	protected existingBucketElementDefined(el: BucketElement<T> | undefined): asserts el is BucketElement<T> {
 		if (this.bucketElementIndexForKey === undefined) throw new Error('Implementation error. Existing bucket element is expected to be defined');
 	}
 
-	private updatedBucketDefined(bucket: LinkedList<BucketElement<T>> | null): asserts bucket is LinkedList<BucketElement<T>> {
+	protected updatedBucketDefined(bucket: LinkedList<BucketElement<T>> | null): asserts bucket is LinkedList<BucketElement<T>> {
 		if (this.bucketElementIndexForKey === undefined) throw new Error('Implementation error. Updated bucket is expected to be defined.');
 	}
 
-	private calculateHash(key: string): number {
+	protected calculateHash(key: string): number {
 		return key.length;
 	}
 
-	private findElementIndexInBucket(bucketList: LinkedList<BucketElement<T>>, key: string): number | undefined {
-		for (let i = 0; i < bucketList.length; i++) {
+	protected findElementIndexInBucket(bucketList: LinkedList<BucketElement<T>>, key: string): number | undefined {
+		for (let i = 0; i < bucketList.size(); i++) {
 			const current = bucketList.find(i)!;
 			if (current.key === key) return i;
 		}

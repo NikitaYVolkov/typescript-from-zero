@@ -5,7 +5,7 @@ export class CustomMap<U extends string | number, V> {
 	private values = new LinkedList<V>;
 
 	size(): number {
-		return this.keys.length;
+		return this.keys.size();
 	}
 
 	set(key: U, value: V): this {
