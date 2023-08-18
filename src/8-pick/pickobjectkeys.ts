@@ -6,19 +6,21 @@ function pickObjectKeys<T extends object, K extends keyof T>(obj: T, keys: K[]):
 	}, {} as R);
 }
 
-const user = {
-	name: "Vasiliy",
-	age: 8,
-	skills: ['typescript', 'javascript'],
-};
-console.log(user);
+export function pickObjectKeysTest() {
+	const user = {
+		name: "Vasiliy",
+		age: 8,
+		skills: ['typescript', 'javascript'],
+	};
+	console.log(user);
 
-const userAgeAndSkillsValues = pickObjectKeys(user, ['age', 'skills']);
-console.log(userAgeAndSkillsValues);
+	const userAgeAndSkillsValues = pickObjectKeys(user, ['age', 'skills']);
+	console.log(userAgeAndSkillsValues);
 
-/*
-res = {
-	age: 8,
-	skills: ['typescript', 'javascript']
+	/*
+	res = {
+		age: 8,
+		skills: ['typescript', 'javascript']
+	}
+	*/
 }
-*/
