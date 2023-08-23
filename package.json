@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "dependencies": {
+    "sort-by": "^1.2.0",
     "typescript": "^5.1.3"
   },
   "scripts": {
