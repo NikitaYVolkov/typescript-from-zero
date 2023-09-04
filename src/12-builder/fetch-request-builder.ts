@@ -1,6 +1,6 @@
 type FetcherMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
-class FetchRequestBuilder {
+export class FetchRequestBuilder {
 	private url: string | URL | undefined = undefined;
 	private method: FetcherMethod = 'GET';
 	private mode: RequestMode = 'cors';

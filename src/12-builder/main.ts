@@ -1,3 +1,3 @@
-import { FetchRequestBuilderTest } from './fetchrequestbuilder';
+import { FetchRequestBuilderTest } from './fetch-request-builder';
 
 FetchRequestBuilderTest();
